@@ -65,6 +65,46 @@ void init(void)
     RCC->AHB1ENR ^= 0x02000000; // set MAC clock enable bit
     RCC->AHB1ENR ^= (0x04000000) ^ (0x08000000); // set TX and RX EN bits
 
+    // enable GPIO A, B, and C to allow access to GPIO registers AF for ETH functionality
+    RCC->AHB1ENR ^= (0x7); // set lower 3 bits to target A, B, and C
+
+    // set GPIO A pins to AF mode
+    struct gpio *GPIOA = gpio_port_start('A');
+    uint32_t AF_MODE = 0b10;
+    uint32_t CFGPINS = 0x0;
+    // set pin 0 to AF mode
+    CFGPINS ^= AF_MODE;
+    // set pin 1 to AF mode
+    CFGPINS ^= (AF_MODE << 2); // pin * 2 = shift amt b/c 2 bits in AF_MODE
+    // set pin 2 to AF mode
+    CFGPINS ^= (AF_MODE << 4);
+    // set pin 3 to AF mode
+    CFGPINS ^= (AF_MODE << 6);
+    // set pin 7 to AF mode
+    CFGPINS ^= (AF_MODE << 14);
+    clear_and_set(&(GPIOA->MODER), CFGPINS);
+    // configure pins to use AF11 which is the alternate function corresponding to
+    // that pin's ETH AF
+    uint32_t AF11 = 0b1011;
+    CFGPINS &= 0x0; // clear bits of accumulator mask
+    // set pin 0 to MII_CRS
+    CFGPINS ^= AF11;
+    // set pin 1 to MII_RX_CLK
+    CFGPINS ^= (AF11 << 4); // pin * 4 = shift amt b/c 4 bits in AF11
+    // set pin 2 to MDIO
+    CFGPINS ^= (AF11 << 8);
+    // set pin 3 to MII_COL
+    CFGPINS ^= (AF11 << 12);
+    // set pin 7 to MII_RX_DV
+    CFGPINS ^= (AF11 << 28);
+    // AFRL used because they correspond to pins 0-7 of the GPIO port's selected AF
+    clear_and_set(&(GPIOA->AFRL), CFGPINS);
+
+    // set GPIO B pins to AF mode
+    uint32_t GPIOB = gpio_port_start('B');
+    // set GPIO C pins to AF mode
+    uint32_t GPIOC = gpio_port_start('C');
+
     // wait 2 clock cycles before peripheral (Eth PHY)
     // peripheral registers can be accessed
 }
