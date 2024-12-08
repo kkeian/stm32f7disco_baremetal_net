@@ -9,16 +9,32 @@ struct rcc {
                       CSR, _RES10, _RES11, SSCGR, PLLI2SCFGR, PLLSAICFGR,
                       DCKCFGR1, DCKCFGR2;
 };
-
+// bits to set for enabling the clock for each part of the MAC in the RCC register
 enum { MAC_CLK_EN = 2, MAC_TX_EN = 4, MAC_RX_EN = 8 };
-
+// for setting RMII or MII on Ethernet peripheral
 struct syscfg {
     volatile uint32_t MEMRMP, PMC, EXTICR1, EXTICR2, EXTICR3, EXTICR4, CMPCR;
+};
+
+struct eth {
+    volatile uint32_t MACCR, MACFFR, MACHTHR, MACHTLR, MACMIIAR,
+                      MACMIIDR, MACFCR, MACVLANTR, MACRWUFFR,
+                      MACPMTCSR, MACDBGR, MACSR, MACIMR, MACA0HR,
+                      MACA0LR, MACA1HR, MACA1LR, MACA2HR, MACA2LR,
+                      MACA3HR, MACA3LR, MMCCR, MMCRIR, MMCTIR,
+                      MMCRIMR, MMCTIMR, MMCTGFSCCR, MMCTGFMSCCR,
+                      MMCTGFCR, MMCRFCECR, MMCRFAECR, MMCRGUFCR,
+                      PTPTSCR, PTPSSIR, PTPTSHR, PTPTSLR, PTPTSHUR,
+                      PTPTSLUR, PTPTSAR, PTPTTHR, PTPTTLR, PTPTSSR,
+                      DMABMR, DMATPDR, DMARPDR, DMARDLAR, DMATDLAR,
+                      DMASR, DMAOMR, DMAIER, DMAMFBOCR, DMARSWTR,
+                      DMACHTDR, DMACHRDR, DMACHTBAR, DMACHRBAR;
 };
 
 // starting memory-mapped addrs from ref manual
 #define SYSCFG ((struct syscfg *) 0x40013800)
 #define RCC ((struct rcc *) 0x40023800)
+#define ETH ((struct eth *) 0x40028000)
 
 void init(void)
 {
@@ -28,8 +44,7 @@ void init(void)
     // Reset value = 0 = MII IF selected:
     // SYSCFG->PMC |= 0x00000000;
 
-    // configure source of MAC clocks: AHB clock
-
+    // configure MAC clocks - via AHB1 RCC register:
     // enable the 3 MAC clocks
     // RMII/MII clock
     // TX clock
