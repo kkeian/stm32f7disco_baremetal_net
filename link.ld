@@ -27,13 +27,13 @@ SECTIONS {
 
     /* next code */
     .text : {
-        *(.text)
+        *(.text*)
     } > flash
 
     /* next our data which will have to copy to RAM at init of runtime env */
     .data : {
         _sdata = .;
-        *(.data);
+        *(.data*);
         _edata = .;
     } > sram AT > flash
     /* sram is where program should expect .data to reside at runtime */
