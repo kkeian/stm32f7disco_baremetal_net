@@ -38,10 +38,14 @@ struct eth {
 
 void init(void)
 {
+    // Enable SYSCFG clock before we set IF to PHY
+    RCC->AHB2ENR &= 0x10000000; // clear SYSCFG clk en bit
+    RCC->AHB2ENR ^= 0x10000000; // set SYSCFG clk en bit
+
     // Select Eth PHY IF
     // clear RMII/MII bit
     SYSCFG->PMC &= 0xFF7FFFFF;
-    // Reset value = 0 = MII IF selected:
+    // Reset value is 0 = MII IF selected:
     // SYSCFG->PMC |= 0x00000000;
 
     // configure MAC clocks - via AHB1 RCC register:
