@@ -16,6 +16,12 @@ struct syscfg {
     volatile uint32_t MEMRMP, PMC, EXTICR1, EXTICR2, EXTICR3, EXTICR4, CMPCR;
 };
 
+struct gpio {
+    volatile uint32_t MODER, OTYPER, OSPEEDR,
+                      PUPDR, IDR, ODR, BSRR,
+                      LCKR, AFRL, AFRH;
+};
+
 struct eth {
     volatile uint32_t MACCR, MACFFR, MACHTHR, MACHTLR, MACMIIAR,
                       MACMIIDR, MACFCR, MACVLANTR, MACRWUFFR,
@@ -35,6 +41,8 @@ struct eth {
 #define SYSCFG ((struct syscfg *) 0x40013800)
 #define RCC ((struct rcc *) 0x40023800)
 #define ETH ((struct eth *) 0x40028000)
+// start of the GPIO addresses
+#define AHB1 ((uint32_t) 0x4002000)
 
 void init(void)
 {
@@ -59,4 +67,17 @@ void init(void)
 
     // wait 2 clock cycles before peripheral (Eth PHY)
     // peripheral registers can be accessed
+}
+
+// helper for computing starting address of gpio
+static struct gpio *gpio_port_start(char letter)
+{
+    return (struct gpio *) (((letter - 'A') * (0x400)) ^ AHB1);
+}
+
+// clear and set bit
+static void clear_and_set(uint32_t *reg, uint32_t bit)
+{
+    reg &= bit; // clear
+    reg ^= bit; // set
 }
