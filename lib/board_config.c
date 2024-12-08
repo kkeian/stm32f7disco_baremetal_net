@@ -55,6 +55,7 @@ void init(void)
     // RX clock
     RCC->AHB1ENR &= 0xF1FFFFFF; // clear MAC TX, RX, and MAC enable bits
     RCC->AHB1ENR ^= 0x02000000; // set MAC clock enable bit
+    RCC->AHB1ENR ^= (0x04000000) ^ (0x08000000); // set TX and RX EN bits
 
     // wait 2 clock cycles before peripheral (Eth PHY)
     // peripheral registers can be accessed
