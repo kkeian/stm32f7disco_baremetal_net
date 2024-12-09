@@ -70,6 +70,7 @@ void init(void)
 
     // set GPIO A pins to AF mode
     struct gpio *GPIOA = gpio_port_start('A');
+    // turn on pins
     uint32_t AF_MODE = 0b10;
     uint32_t CFGPINS = 0x0;
     // set pin 0 to AF mode
@@ -101,9 +102,53 @@ void init(void)
     clear_and_set(&(GPIOA->AFRL), CFGPINS);
 
     // set GPIO B pins to AF mode
-    uint32_t GPIOB = gpio_port_start('B');
+    struct gpio *GPIOB = gpio_port_start('B');
+    // turn on pin's modes
+    CFGPINS &= 0x0; // clear accumulator
+    // PB0 ETH_MII_RXD2
+    CFGPINS ^= AF_MODE;
+    // PB1 ETH_MII_RXD3
+    CFGPINS ^= (AF_MODE << 2); // same shift formula as GPIOA
+    // PB5 ETH_PPS_OUT
+    CFGPINS ^= (AF_MODE << 10);
+    // PB8 ETH_MII_TXD3
+    CFGPINS ^= (AF_MODE << 16);
+    // PB10 ETH_MII_RX_ER
+    CFGPINS ^= (AF_MODE << 20);
+    // PB11 ETH_MII_TX_EN
+    CFGPINS ^= (AF_MODE << 22);
+    // PB12 ETH_MII_TXD0
+    CFGPINS ^= (AF_MODE << 24);
+    // PB13 ETH_MII_TXD1
+    CFGPINS ^= (AF_MODE << 26);
+    clear_and_set(&(GPIOB->MODER), CFGPINS);
+    // Select the AF for each pin whose mode was set
+    // Set configured AF Low 0-7 pins above to AF11
+    CFGPINS &= 0x0; // clear set pins
+    // PB0
+    CFGPINS ^= AF11;
+    // PB1
+    CFGPINS ^= (AF11 << 4); // shift formula same as for GPIOA
+    // PB5
+    CFGPINS ^= (AF11 << 20);
+    clear_and_set(&(GPIOB->AFRL), CFGPINS);
+
+    // Set configured AF High 8-15 pins above to AF11
+    CFGPINS &= 0x0; // clear set pins
+    // PB8
+    CFGPINS ^= AF11; // on AFRH unshifted (first 4 bits) targets pin 8
+    // PB10
+    CFGPINS ^= (AF11 << 8); // PB10 corresponds to 3rd grouping of 4 bits
+    // PB11
+    CFGPINS ^= (AF11 << 12);
+    // PB12
+    CFGPINS ^= (AF11 << 16);
+    // PB13
+    CFGPINS ^= (AF11 << 20);
+    clear_and_set(&(GPIOB->AFRH), CFGPINS);
+
     // set GPIO C pins to AF mode
-    uint32_t GPIOC = gpio_port_start('C');
+    struct gpio *GPIOC = gpio_port_start('C');
 
     // wait 2 clock cycles before peripheral (Eth PHY)
     // peripheral registers can be accessed
