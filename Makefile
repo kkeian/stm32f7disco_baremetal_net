@@ -1,5 +1,6 @@
 CFLAGS ?= -Werror -Wformat -Wextra -Wmissing-include-dirs -Wuninitialized \
-		  -mthumb -mcpu=cortex-m4 -ffreestanding -nostdlib -nolibc -v 
+		  -mthumb -mcpu=cortex-m4 -ffreestanding -nostdlib -nolibc -v \
+		  -ffunction-sections -fdata-sections
 LDFLAGS ?= -nolibc -nostdlib -belf32-littlearm -Tlink.ld
 
 SOURCES = main.c
