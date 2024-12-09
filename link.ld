@@ -42,13 +42,19 @@ SECTIONS {
     /* _sdata and _edata are the start and end addresses where the .data contents are initially located in flash */
     _sidata = LOADADDR(.data);
 
-    .bss : {
+    .bss (NOLOAD) : {
         _sbss = .;
-        *(.bss COMMON); /* COMMON are common symbols in ELF files per the definition in ld docs */
+        *(.bss);
+        *(COMMON); /* COMMON are global uninit'd vars accessible outside file scope */
         _ebss = .;
     } > sram
     /* put uninit'd data directly into RAM at flash */
 
-    /* make sure to align along byte boundaries because ARM32 is a byte addressed Architecture */
-    . = ALIGN(8); 
+    .stack (NOLOAD) : {
+        /* make sure aligned at top of stack and bottom along 8 byte boundaries */
+        /* AAPCS (Arm Architecture Procedure Call Standard) requires public interface of stack be aligned this way */
+        . = ALIGN(8);
+        . = _estack; /* set stack pointer to highest address which we calculated above */
+        . = ALIGN(8);
+    } > sram
 }
