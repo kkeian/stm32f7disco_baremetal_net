@@ -52,13 +52,17 @@ void init(void)
 
     // Select Eth PHY IF
     // clear RMII/MII bit
-    SYSCFG->PMC &= 0xFF7FFFFF;
-    // Reset value is 0 = MII IF selected:
-    // SYSCFG->PMC |= 0x00000000;
+    // SYSCFG->PMC is used to configure PHY IF "mode":
+    // Reset value is 0 = MII IF selected.
+    // So this is set correctly already.
 
     // Enable CRC clock
+    // reset value of reg: 0x0010 0000
+    RCC->AHB1ENR ^= 0x1000;
 
     // Configure CRC for network message integrity
+    // CRC polynomial at reset is CRC-32 Ethernet 0x04C1 1DB7
+    // so we leave that setting.
 
     // configure MAC clocks - via AHB1 RCC register:
     // enable the 3 MAC clocks
@@ -67,7 +71,7 @@ void init(void)
     // RX clock
     RCC->AHB1ENR &= 0xF1FFFFFF; // clear MAC TX, RX, and MAC enable bits
     RCC->AHB1ENR ^= 0x02000000; // set MAC clock enable bit
-    RCC->AHB1ENR ^= (0x04000000) ^ (0x08000000); // set TX and RX EN bits
+    RCC->AHB1ENR ^= (0x04000000) ^ (0x08000000); // set ETH TX and RX EN bits
 
     // enable GPIO A, B, and C to allow access to GPIO registers AF for ETH functionality
     RCC->AHB1ENR ^= (0x7); // set lower 3 bits to target A, B, and C
