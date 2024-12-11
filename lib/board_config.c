@@ -171,6 +171,6 @@ static struct gpio *gpio_port_start(char letter)
 // clear and set bit
 static void clear_and_set(uint32_t *reg, uint32_t bit)
 {
-    reg &= bit; // clear
+    reg &= ~(bit); // clear
     reg ^= bit; // set
 }
