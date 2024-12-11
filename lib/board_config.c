@@ -47,8 +47,8 @@ void init(void)
     // Must enable clock before accessing registers of a peripheral
     //
     // Enable SYSCFG clock before we set IF to PHY
-    RCC->AHB2ENR &= 0x10000000; // clear SYSCFG clk en bit
-    RCC->AHB2ENR ^= 0x10000000; // set SYSCFG clk en bit
+    RCC->APB2ENR &= 0x10000000; // clear SYSCFG clk en bit
+    RCC->APB2ENR ^= 0x10000000; // set SYSCFG clk en bit
 
     // Select Eth PHY IF
     // clear RMII/MII bit
