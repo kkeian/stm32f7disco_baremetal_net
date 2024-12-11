@@ -9,8 +9,6 @@ struct rcc {
                       CSR, _RES10, _RES11, SSCGR, PLLI2SCFGR, PLLSAICFGR,
                       DCKCFGR1, DCKCFGR2;
 };
-// bits to set for enabling the clock for each part of the MAC in the RCC register
-enum { MAC_CLK_EN = 2, MAC_TX_EN = 4, MAC_RX_EN = 8 };
 // for setting RMII or MII on Ethernet peripheral
 struct syscfg {
     volatile uint32_t MEMRMP, PMC, EXTICR1, EXTICR2, EXTICR3, EXTICR4, CMPCR;
@@ -46,6 +44,8 @@ struct eth {
 
 void init(void)
 {
+    // Must enable clock before accessing registers of a peripheral
+    //
     // Enable SYSCFG clock before we set IF to PHY
     RCC->AHB2ENR &= 0x10000000; // clear SYSCFG clk en bit
     RCC->AHB2ENR ^= 0x10000000; // set SYSCFG clk en bit
@@ -55,6 +55,10 @@ void init(void)
     SYSCFG->PMC &= 0xFF7FFFFF;
     // Reset value is 0 = MII IF selected:
     // SYSCFG->PMC |= 0x00000000;
+
+    // Enable CRC clock
+
+    // Configure CRC for network message integrity
 
     // configure MAC clocks - via AHB1 RCC register:
     // enable the 3 MAC clocks
