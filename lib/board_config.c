@@ -76,83 +76,62 @@ void init(void)
     // enable GPIO A, B, and C to allow access to GPIO registers AF for ETH functionality
     RCC->AHB1ENR ^= (0x7); // set lower 3 bits to target A, B, and C
 
-    // set GPIO A pins to AF mode
+    // set GPIO A pins to ETH AF
     struct gpio *GPIOA = gpio_port_start('A');
-    // turn on pins
+    // turn on (enable) pins in AF mode
     uint32_t AF_MODE = 0x2; // = 0b10
     uint32_t CFGPINS = 0x0;
-    // set pin 0 to AF mode
-    CFGPINS ^= AF_MODE;
-    // set pin 1 to AF mode
-    CFGPINS ^= (AF_MODE << 2); // pin * 2 = shift amt b/c 2 bits in AF_MODE
-    // set pin 2 to AF mode
-    CFGPINS ^= (AF_MODE << 4);
-    // set pin 3 to AF mode
-    CFGPINS ^= (AF_MODE << 6);
-    // set pin 7 to AF mode
-    CFGPINS ^= (AF_MODE << 14);
+    // set pin 0 - MII_CRS
+    // set pin 1 - MII_RX_CLK
+    // set pin 2 - MDIO for SMI
+    // set pin 3 - MII_COL
+    // set pin 7 - MII_RX_DV
+    // shift amt = 2 (num of bits in AF_MODE) * pin num
+    CFGPINS ^= ((AF_MODE) | (AF_MODE << 2) | (AF_MODE << 4) |
+               (AF_MODE << 6) | (AF_MODE << 14));
     clear_and_set(&(GPIOA->MODER), CFGPINS);
     // configure pins to use AF11 which is the alternate function corresponding to
     // that pin's ETH AF
     uint32_t AF11 = 0xB; // = 0b1011
     CFGPINS = 0x0; // clear bits of accumulator mask
-    // set pin 0 to MII_CRS
-    CFGPINS ^= AF11;
-    // set pin 1 to MII_RX_CLK
-    CFGPINS ^= (AF11 << 4); // pin * 4 = shift amt b/c 4 bits in AF11
-    // set pin 2 to MDIO for SMI
-    CFGPINS ^= (AF11 << 8);
-    // set pin 3 to MII_COL
-    CFGPINS ^= (AF11 << 12);
-    // set pin 7 to MII_RX_DV
-    CFGPINS ^= (AF11 << 28);
-    // AFRL used because they correspond to pins 0-7 of the GPIO port's selected AF
+    // shift amt = 4 (num of bits in AF11) * pin num
+    // targeting pins 0, 1, 2, 3, and 7:
+    CFGPINS ^= ((AF11) | (AF11 << 4) | (AF11 << 8) | (AF11 << 12) |
+               (AF11 << 28));
+    // AFRL used because they correspond to pins 0-7
+    // of the GPIO port's selected AF
     clear_and_set(&(GPIOA->AFRL), CFGPINS);
 
     // set GPIO B pins to AF mode
     struct gpio *GPIOB = gpio_port_start('B');
     // turn on pin's modes
     CFGPINS = 0x0; // clear accumulator
-    // PB0 ETH_MII_RXD2
-    CFGPINS ^= AF_MODE;
-    // PB1 ETH_MII_RXD3
-    CFGPINS ^= (AF_MODE << 2); // same shift formula as GPIOA
-    // PB5 ETH_PPS_OUT
-    CFGPINS ^= (AF_MODE << 10);
-    // PB8 ETH_MII_TXD3
-    CFGPINS ^= (AF_MODE << 16);
-    // PB10 ETH_MII_RX_ER
-    CFGPINS ^= (AF_MODE << 20);
-    // PB11 ETH_MII_TX_EN
-    CFGPINS ^= (AF_MODE << 22);
-    // PB12 ETH_MII_TXD0
-    CFGPINS ^= (AF_MODE << 24);
-    // PB13 ETH_MII_TXD1
-    CFGPINS ^= (AF_MODE << 26);
+    // PB0 - MII_RXD2
+    // PB1 - MII_RXD3
+    // PB5 - PPS_OUT
+    // PB8 - MII_TXD3
+    // PB10 - MII_RX_ER
+    // PB11 - MII_TX_EN
+    // PB12 - MII_TXD0
+    // PB13 - MII_TXD1
+    // shift amt = 2 (num of bits in AF_MODE) * pin num
+    CFGPINS ^= ((AF_MODE) | (AF_MODE << 2) | (AF_MODE << 10) |
+                (AF_MODE << 16) | (AF_MODE << 20) | (AF_MODE << 22) |
+                (AF_MODE << 24) | (AF_MODE << 26));
     clear_and_set(&(GPIOB->MODER), CFGPINS);
     // Select the AF for each pin whose mode was set
     // Set configured AF Low 0-7 pins above to AF11
     CFGPINS = 0x0; // clear set pins
-    // PB0
-    CFGPINS ^= AF11;
-    // PB1
-    CFGPINS ^= (AF11 << 4); // shift formula same as for GPIOA
-    // PB5
-    CFGPINS ^= (AF11 << 20);
+    // shift amt = 4 (num of bits in AF11) * pin num
+    // targeting pins 0, 1, and 5:
+    CFGPINS ^= ((AF11) | (AF11 << 4) | (AF11 << 20));
     clear_and_set(&(GPIOB->AFRL), CFGPINS);
-
     // Set configured AF High 8-15 pins above to AF11
+    // Note: in AFRH pins the 3 lsb (bits 0 - 3) target pin 8
+    // targeting pins 8, 10, 11, 12, and 13:
     CFGPINS = 0x0; // clear set pins
-    // PB8
-    CFGPINS ^= AF11; // on AFRH unshifted (first 4 bits) targets pin 8
-    // PB10
-    CFGPINS ^= (AF11 << 8); // PB10 corresponds to 3rd grouping of 4 bits
-    // PB11
-    CFGPINS ^= (AF11 << 12);
-    // PB12
-    CFGPINS ^= (AF11 << 16);
-    // PB13
-    CFGPINS ^= (AF11 << 20);
+    CFGPINS ^= ((AF11) | (AF11 << 8) | (AF11 << 12) | (AF11 << 16) | 
+               (AF11 << 20));
     clear_and_set(&(GPIOB->AFRH), CFGPINS);
 
     // set GPIO C pins to AF mode
