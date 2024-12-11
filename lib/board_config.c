@@ -95,12 +95,12 @@ void init(void)
     // configure pins to use AF11 which is the alternate function corresponding to
     // that pin's ETH AF
     uint32_t AF11 = 0b1011;
-    CFGPINS &= 0x0; // clear bits of accumulator mask
+    CFGPINS = 0x0; // clear bits of accumulator mask
     // set pin 0 to MII_CRS
     CFGPINS ^= AF11;
     // set pin 1 to MII_RX_CLK
     CFGPINS ^= (AF11 << 4); // pin * 4 = shift amt b/c 4 bits in AF11
-    // set pin 2 to MDIO
+    // set pin 2 to MDIO for SMI
     CFGPINS ^= (AF11 << 8);
     // set pin 3 to MII_COL
     CFGPINS ^= (AF11 << 12);
@@ -112,7 +112,7 @@ void init(void)
     // set GPIO B pins to AF mode
     struct gpio *GPIOB = gpio_port_start('B');
     // turn on pin's modes
-    CFGPINS &= 0x0; // clear accumulator
+    CFGPINS = 0x0; // clear accumulator
     // PB0 ETH_MII_RXD2
     CFGPINS ^= AF_MODE;
     // PB1 ETH_MII_RXD3
@@ -132,7 +132,7 @@ void init(void)
     clear_and_set(&(GPIOB->MODER), CFGPINS);
     // Select the AF for each pin whose mode was set
     // Set configured AF Low 0-7 pins above to AF11
-    CFGPINS &= 0x0; // clear set pins
+    CFGPINS = 0x0; // clear set pins
     // PB0
     CFGPINS ^= AF11;
     // PB1
@@ -142,7 +142,7 @@ void init(void)
     clear_and_set(&(GPIOB->AFRL), CFGPINS);
 
     // Set configured AF High 8-15 pins above to AF11
-    CFGPINS &= 0x0; // clear set pins
+    CFGPINS = 0x0; // clear set pins
     // PB8
     CFGPINS ^= AF11; // on AFRH unshifted (first 4 bits) targets pin 8
     // PB10
@@ -157,6 +157,26 @@ void init(void)
 
     // set GPIO C pins to AF mode
     struct gpio *GPIOC = gpio_port_start('C');
+    // Enable Port C pins by setting them to use AF mode
+    CFGPINS = 0x0;
+    // PC1 - ETH_MDC for SMI
+    // PC2 - ETH_MII_TXD2
+    // PC3 - ETH_MII_TX_CLK
+    // PC4 - ETH_MII_RXD0
+    // PC5 - ETH_MII_RXD1
+    // shift amt = 2 (num of bits in AF_MODE) * pin num
+    CFGPINS ^= ((AF_MODE << 2) | (AF_MODE << 4) | (AF_MODE << 6) | (AF_MODE << 8) | (AF_MODE << 10));
+    clear_and_set(&(GPIOC->MODER), CFGPINS);
+
+    // Configure the AF for each pin to use ETH related AF which is
+    // AF11 for all ETH related functions per the Ref Manual
+    CFGPINS = 0x0;
+    // pins we need to configure are all < 7 so we target AFRL
+    // which configures the AF used on pins 0 - 7 of the port
+    // shift amt = 4 (num of bits in AF11) * pin num
+    // targeting pins 1, 2, 3, 4, and 5:
+    CFGPINS ^= ((AF11 << 4) | (AF11 << 8) | (AF11 << 12) | (AF11 << 16) | (AF11 << 20));
+    clear_and_set(&(GPIOC->AFRL), CFGPINS);
 
     // wait 2 clock cycles before peripheral (Eth PHY)
     // peripheral registers can be accessed
