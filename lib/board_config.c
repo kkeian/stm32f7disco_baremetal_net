@@ -79,7 +79,7 @@ void init(void)
     // set GPIO A pins to AF mode
     struct gpio *GPIOA = gpio_port_start('A');
     // turn on pins
-    uint32_t AF_MODE = 0b10;
+    uint32_t AF_MODE = 0x2; // = 0b10
     uint32_t CFGPINS = 0x0;
     // set pin 0 to AF mode
     CFGPINS ^= AF_MODE;
@@ -94,7 +94,7 @@ void init(void)
     clear_and_set(&(GPIOA->MODER), CFGPINS);
     // configure pins to use AF11 which is the alternate function corresponding to
     // that pin's ETH AF
-    uint32_t AF11 = 0b1011;
+    uint32_t AF11 = 0xB; // = 0b1011
     CFGPINS = 0x0; // clear bits of accumulator mask
     // set pin 0 to MII_CRS
     CFGPINS ^= AF11;
